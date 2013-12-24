@@ -1,16 +1,19 @@
 require "./brush"
 require "./node"
+require "./directory_node"
 require "./directory_reader"
 require './index_html_writer'
 require './left_html_writer'
 require './right_html_writer'
 require 'fileutils'
 
-puts 'ruby'
-puts 'a'
-xml = Brush.new("x", "y")
-puts xml.javaScript
-puts xml.style
+src_dir_path = ARGV[0]
+dst_dir_path = ARGV[1]
+
+if src_dir_path == nil || dst_dir_path == nil
+  p 'usage : ruby html_converter.rb <src_path> <dst_path>'
+  exit
+end
 
 brush_dictionary = {}
 brush_dictionary["as3"] = Brush.new("shBrushAS3.js", "as3")
@@ -36,22 +39,15 @@ brush_dictionary["scala"] = Brush.new("shBrushScala.js", "scala")
 brush_dictionary["sql"] = Brush.new("shBrushSql.js", "sql")
 brush_dictionary["vb"] = Brush.new("shBrushVb.js", "vb")
 brush_dictionary["xml"] = Brush.new("shBrushXml.js", "xml")
-p brush_dictionary
-
-n1 = Node.new("abc")
-p n1.name
-n2 = DirectoryNode.new("def")
-p n2.name
-n3 = FileNode.new("ghi", "jkl")
-p n3.name + n3.path
-
-src_dir_path = "D:/Users/Mukouhara/Program/GitHub/HtmlConverter/HtmlConverter"
-dst_dir_path = "D:/Users/Mukouhara/Program/GitHub/HtmlConverter/HtmlConverter-html"
+#p brush_dictionary
 
 brush_factory = {}
 brush_factory["." + "cs"] = brush_dictionary["csharp"]
 brush_factory["." + "xml"] = brush_dictionary["xml"]
+brush_factory["." + "css"] = brush_dictionary["css"]
+brush_factory["." + "js"] = brush_dictionary["js"]
 brush_factory["." + "txt"] = brush_dictionary["txt"]
+brush_factory["." + "html"] = brush_dictionary["xml"]
 
 reader = DirectoryReader.new(brush_factory)
 reader.read(src_dir_path, dst_dir_path)
@@ -64,10 +60,8 @@ file_list.each { |x|
   dir_path = File.dirname(html_dir_path + x[target_length .. -1])
   FileUtils.mkdir_p(dir_path) unless FileTest.exist?(dir_path)
   #puts "file path : " + x
-  puts "dir_path : " + dir_path
+  #puts "dir_path : " + dir_path
 }
-
-#reader.root.print("")
 
 index_html_content = ""
 File.open("index.html.erb", "r") do |x|
@@ -84,21 +78,38 @@ File.open("right.html.erb", "r") do |x|
   right_html_content = x.read
 end
 
-puts "target length : " + target_length.to_s
+#puts "target length : " + target_length.to_s
 
-title = "hoge"
+title = File.basename(src_dir_path)
+p 'title : ' + title
+p 'src dir path : ' + src_dir_path
+p 'dst dir path : ' + dst_dir_path
+
+# index output
 IndexHtmlWriter.new(index_html_content).write(File.join(dst_dir_path, "index.html"), title)
+
+# left output
 LeftHtmlWriter.new(left_html_content).write(File.join(dst_dir_path, "left.html"), root)
+
+# right output
 rw = RightHtmlWriter.new(right_html_content)
 
 file_list.each { |x|
   brush = brush_factory[File.extname(x).downcase]
-#  puts "x : " + x
-#  puts "       " + x[target_length .. -1]
-  src_path = x
-  dst_path = html_dir_path + x[target_length .. -1] + ".html"
-  depth = 0
-  #puts "dst path : " + dst_path
-  rw.write(brush, src_path, dst_path, depth)
+  if brush 
+    src_path = x
+    dst_path = html_dir_path + x[target_length .. -1] + ".html"
+    depth = x[target_length + 1 .. -1].count('/')
+    #puts "dst path : " + dst_path
+    rw.write(brush, src_path, dst_path, depth)
+  end
 }
+
+# リソースファイルのコピー
+FileUtils.copy_entry("./resources/css", File.join(dst_dir_path, 'css'));
+FileUtils.copy_entry("./resources/js", File.join(dst_dir_path, 'js'));
+FileUtils.copy_entry("./resources/images", File.join(dst_dir_path, 'images'));
+FileUtils.cp("./right.html", File.join(dst_dir_path, 'right.html'));
+
+p 'Done.'
 

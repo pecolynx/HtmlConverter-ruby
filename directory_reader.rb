@@ -37,7 +37,7 @@ class DirectoryReader
 
 
 
-      puts "dst file path" + f
+      #puts "dst file path" + f
       file_path_list.push(f)
     }
 
@@ -70,13 +70,13 @@ class DirectoryReader
 
     file_list.sort.each { |key, value|
       dir_path = File.dirname(key)
-      puts "file list " + dir_path + " : " + key
+      #puts "file list " + dir_path + " : " + key
       directory_list[dir_path].add_file(value)
     }
 
     directory_list.sort.each { |key, value|
       dir_path = File.dirname(key)
-      puts "dir list " + dir_path + " : " + key
+      #puts "dir list " + dir_path + " : " + key
       if directory_list.has_key?(dir_path)
         directory_list[dir_path].add_directory(value)
       end

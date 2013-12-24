@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>left</title>
+<script type="text/javascript" src="./js/jquery.js"></script>
+<script type="text/javascript" src="./js/jquery.cookie.js"></script>
+<script type="text/javascript" src="./js/jquery.hotkeys.js"></script>
+<script type="text/javascript" src="./js/jquery.jstree.js"></script>
+
+<link type="text/css" rel="stylesheet" href="./css/style.css"/>
+</head>
+<body>
+<div id="container">
+<div id="tree">
+<%= content %>
+</div>
+<script type="text/javascript" class="source below">
+$(function () {
+	$("#tree")
+		.jstree({
+			"themes" : {
+				"theme" : "apple",
+				"dots" : true,
+				"icons" : false
+			},
+			"plugins" : [ "themes", "html_data", "ui" ]
+		})
+		.bind("select_node.jstree", function (event, data) {
+			var location = data.rslt.obj.attr("name");
+			if (location != undefined) {
+				parent.right.location.href = location;
+			}
+		})
+		.delegate("a", "click", function (event, data) {
+			event.preventDefault();
+		})
+		.delegate(".jstree-open>a", "click.jstree", function(event){
+			$.jstree._reference(this).close_node(this,false,false);
+		})
+		.delegate(".jstree-closed>a", "click.jstree", function(event){
+    		$.jstree._reference(this).open_node(this,false,false);
+		});
+});
+</script>
+</div>
+</body>
+</html>
